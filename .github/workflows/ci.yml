@@ -133,8 +133,8 @@ jobs:
 
       - id: gen-containers-matrix
         run: |
-          echo "coloncolonset-output name=matrixcoloncolon$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{include : [{ container: $cont | split("\n")}]}')"
-          echo "colocolonset-output name=matrixcoloncolon{\"include\":[{\"container\":\"zerotier\"}]}"
+          echo "ccset-output name=matrixcc$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{ container: $cont | split("\n")}')"
+          echo "ccset-output name=matrixcc{\"container\":[\"zerotier\"]}"
           echo "::set-output name=matrix::$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{ container: $cont | split("\n")}')"
           echo "::set-output name=matrix::{\"container\":[\"zerotier\"]}"
 
