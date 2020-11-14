@@ -7,124 +7,110 @@ on:
     types: [created]
 
 jobs:
-  #  check-lint-and-format:
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #
-  #      - name: Set up Python 3.9
-  #        uses: actions/setup-python@v1
-  #        with:
-  #          python-version: 3.9
-  #
-  #      - name: Install dependencies
-  #        run: |
-  #          python -m pip install --upgrade pip
-  #          pip install black isort autoflake
-  #
-  #      - name: Remove unused imports
-  #        run: |
-  #          # one run to output unused imports, another run for exit code
-  #          autoflake . -r --remove-all-unused-imports
-  #          autoflake . -r --remove-all-unused-imports -c
-  #
-  #      - name: Sort imports
-  #        run: isort . --check --diff -rc
-  #
-  #      - name: black
-  #        run: black . --check
-  #
-  #  test:
-  #    runs-on: ${{ matrix.os }}
-  #    needs: check-lint-and-format
-  #    strategy:
-  #      fail-fast: false
-  #      matrix:
-  #        python-version: [3.6, 3.7, 3.8, 3.9]
-  #        os: [ubuntu-latest, macos-latest, windows-latest]
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #
-  #      - name: Set up Python ${{ matrix.python-version }}
-  #        uses: actions/setup-python@v1
-  #        with:
-  #          python-version: ${{ matrix.python-version }}
-  #
-  #      - name: Install dependencies
-  #        run: |
-  #          python -m pip install --upgrade pip
-  #          pip install pyyaml kubernetes
-  #          pip install pytest
-  #
-  #      - name: Build Python package
-  #        run: pip install .
-  #
-  #      - name: pytest
-  #        run: pytest tests
-  #
-  #  publish:
-  #    needs: test
-  #    runs-on: ${{ matrix.os }}
-  #    strategy:
-  #      fail-fast: false
-  #      # after we test that the module works on all systems we only need to build one since this is a pure python module
-  #      matrix:
-  #        python-version: [3.8]
-  #        os: [ubuntu-latest]
-  #
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #
-  #      - uses: actions/setup-python@v1
-  #        with:
-  #          python-version: ${{ matrix.python-version }}
-  #
-  #      - name: Install dependencies
-  #        run: |
-  #          python -m pip install --upgrade pip
-  #          pip install pyyaml
-  #          pip install wheel
-  #
-  #      - name: Build Python package
-  #        run: python setup.py bdist_wheel
-  #
-  #      - name: Install wheels
-  #        run: pip install dist/*.whl
-  #
-  #      - name: Release
-  #        uses: softprops/action-gh-release@v1
-  #        if: startsWith(github.ref, 'refs/tags/')
-  #        with:
-  #          files: dist/*.whl
-  #        env:
-  #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #
-  #      - name: Publish package to TestPYPI
-  #        if: github.event_name == 'release' && github.event.action == 'created'
-  #        uses: pypa/gh-action-pypi-publish@master
-  #        with:
-  #          user: __token__
-  #          password: ${{ secrets.PYPI_TOKEN }}
+  check-lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-  job1:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-    - id: set-matrix
-      run: echo "::set-output name=matrix::{\"project\":[\"foo\",\"bar\"]}"
-  job2:
-    needs: job1
-    runs-on: ubuntu-latest
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort autoflake
+
+      - name: Remove unused imports
+        run: |
+          # one run to output unused imports, another run for exit code
+          autoflake . -r --remove-all-unused-imports
+          autoflake . -r --remove-all-unused-imports -c
+
+      - name: Sort imports
+        run: isort . --check --diff -rc
+
+      - name: black
+        run: black . --check
+
+  test:
+    runs-on: ${{ matrix.os }}
+    needs: check-lint-and-format
     strategy:
-      matrix: ${{fromJson(needs.job1.outputs.matrix)}}
+      fail-fast: false
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-    - run: echo ${{ matrix.project }}
-      id: testaction
+      - uses: actions/checkout@v2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml kubernetes
+          pip install pytest
+
+      - name: Build Python package
+        run: pip install .
+
+      - name: pytest
+        run: pytest tests
+
+  publish:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # after we test that the module works on all systems we only need to build one since this is a pure python module
+      matrix:
+        python-version: [3.8]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          pip install wheel
+
+      - name: Build Python package
+        run: python setup.py bdist_wheel
+
+      - name: Install wheels
+        run: pip install dist/*.whl
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package to PyPI
+        if: github.event_name == 'release' && github.event.action == 'created'
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
 
   list_containers_to_publish:
+    # based on
+    # https://stackoverflow.com/a/62953566/207209
     runs-on: ubuntu-latest
-      #needs: test
+    needs: test
       #if: github.event_name == 'release' && github.event.action == 'created'
     outputs:
       matrix: ${{ steps.gen-containers-matrix.outputs.matrix }}
@@ -133,10 +119,9 @@ jobs:
 
       - id: gen-containers-matrix
         run: |
-          echo "ccset-output name=matrixcc$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{ container: $cont | split("\n")}')"
-            #echo "ccset-output name=matrixcc{\"container\":[\"zerotier\"]}"
+          echo "Generated container list and saved as output named matrix:"
+          echo "$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{ container: $cont | split("\n")}')"
           echo "::set-output name=matrix::$(jq -c -n --arg cont "$(find docker  -mindepth 1 -type d -exec basename {} \;)" '{ container: $cont | split("\n")}')"
-            #echo "::set-output name=matrix::{\"container\":[\"zerotier\"]}"
 
   publish_containers:
     # based on
@@ -162,35 +147,33 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-            #      - name: Create docker hub ${{ matrix.container }} repo if not exists
-            #        # requires a github username and password rather than a token, unfortunately
-            #        # https://github.com/docker/hub-feedback/issues/1914
-            #        run: |
-            #          USER=${{ secrets.DOCKERHUB_USERNAME }}
-            #          PASS=${{ secrets.DOCKERHUB_PASSWORD }}
-            #          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${USER}'", "password": "'${PASS}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-            #
-            #          curl -s -H "Authorization: JWT ${TOKEN}" "https://hub.docker.com/v2/repositories/" \
-            #          --data 'description="tezos-k8s ${{ matrix.container }}"' \
-            #          --data 'full_description="The container for https://github.com/tqtezos/tezos-k8s/tree/master/docker/${{ matrix.container }}' \
-            #          --data 'is_private=false' \
-            #          --data 'name=tezos-k8s-${{ matrix.container }}' \
-            #          --data "namespace=tqtezos" || true
-            #
-            #      - name: Docker meta
-            #        id: docker_meta
-            #        uses: crazy-max/ghaction-docker-meta@v1
-            #        with:
-            #          images: tqtezos/tezos-k8s-${{ matrix.container }}
-            #          tag-sha: true
-            #
-            #      - name: Publish ${{ matrix.container }} container to Docker Hub
-            #        uses: docker/build-push-action@v2
-            #        with:
-            #          context: docker/${{ matrix.container }}/.
-            #          file: docker/${{ matrix.container }}/Dockerfile
-            #          push: true
-            #          tags: ${{ steps.docker_meta.outputs.tags }}
-            #          labels: ${{ steps.docker_meta.outputs.labels }}
+      - name: Create docker hub ${{ matrix.container }} repo if not exists
+        # requires a github username and password rather than a token, unfortunately
+        # https://github.com/docker/hub-feedback/issues/1914
+        run: |
+          USER=${{ secrets.DOCKERHUB_USERNAME }}
+          PASS=${{ secrets.DOCKERHUB_PASSWORD }}
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${USER}'", "password": "'${PASS}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
 
+          curl -s -H "Authorization: JWT ${TOKEN}" "https://hub.docker.com/v2/repositories/" \
+          --data 'description="tezos-k8s ${{ matrix.container }}"' \
+          --data 'full_description="The container for https://github.com/tqtezos/tezos-k8s/tree/master/docker/${{ matrix.container }}' \
+          --data 'is_private=false' \
+          --data 'name=tezos-k8s-${{ matrix.container }}' \
+          --data "namespace=tqtezos" || true
 
+      - name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
+        with:
+          images: tqtezos/tezos-k8s-${{ matrix.container }}
+          tag-sha: true
+
+      - name: Publish ${{ matrix.container }} container to Docker Hub
+        uses: docker/build-push-action@v2
+        with:
+          context: docker/${{ matrix.container }}/.
+          file: docker/${{ matrix.container }}/Dockerfile
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
