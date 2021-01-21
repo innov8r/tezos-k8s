@@ -100,13 +100,12 @@ spec:
           readinessProbe:
             exec:
               command:
-                - nc
-                - "-z"
-                - '127.0.0.1'
-                - '8732'
-            initialDelaySeconds: 2
-            periodSeconds: 2
-            timeoutSeconds: 1
+              - /bin/sh
+              - -c
+              - "[ $(tezos-client rpc get /network/peers | wc -c) -gt 5 ]"
+            timeoutSeconds: 60
+            initialDelaySeconds: 60
+            periodSeconds: 120
           volumeMounts:
             - mountPath: /etc/tezos
               name: config-volume
