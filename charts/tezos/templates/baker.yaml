@@ -68,6 +68,7 @@ metadata:
   name: tezos-baking-node
   namespace: {{ .Release.Namespace }}
 spec:
+  podManagementPolicy: Parallel
   replicas: {{ .Values.nodes.baking | len }}
   serviceName: tezos-baking-node
   selector:
