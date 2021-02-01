@@ -22,13 +22,17 @@ const helm_values = YAML.parse(helm_values_file)
 const nginx_ingress_helm_values_file = fs.readFileSync('nginx_ingress_values.yaml', 'utf8')
 const nginx_ingress_helm_values = YAML.parse(nginx_ingress_helm_values_file)
 
-helm_values['tezos_k8s_images'] = helm_values['tezos_k8s_images'] || {};
-helm_values["tezos_k8s_images"]["zerotier_docker_image"] = repo.buildAndPushImage("../zerotier");
-helm_values["tezos_k8s_images"]["tezos_chain_initiator_docker_image"] = repo.buildAndPushImage("../chain-initiator");
-helm_values["tezos_k8s_images"]["tezos_config_generator_docker_image"] = repo.buildAndPushImage("../config-generator");
-helm_values["tezos_k8s_images"]["tezos_key_importer_docker_image"] = repo.buildAndPushImage("../key-importer");
+let images : {};
+images = helm_values['tezos_k8s_images'] || {};
 
-const rpc_auth_helm_values = { "container_images" : { "rpc_auth_image": repo.buildAndPushImage("../rpc-auth") } };
+let imagelist = ["baker_endorser", "chain_initiator", "config_generator",
+	         "key_importer", "rpc_auth", "wait_for_bootstrap", "zerotier"]
+
+for (let image of imagelist) {
+    images[image] = repo.buildAndPushImage("../" + image.replace(/_/g, "-"))
+}
+
+helm_values["tezos_k8s_images"] = images;
 
 const vpc = new awsx.ec2.Vpc("tezos-vpc", {});
 
@@ -46,7 +50,7 @@ const chain = new k8s.helm.v2.Chart("chain", {
 
 const rpc = new k8s.helm.v2.Chart("rpc-auth", {
     path: "../charts/rpc-auth",
-    values: rpc_auth_helm_values,
+    values: helm_values,
 }, { providers: { "kubernetes": cluster.provider } });
 
 // Manual step at this point:
