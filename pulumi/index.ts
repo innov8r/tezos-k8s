@@ -42,13 +42,19 @@ const cluster = new eks.Cluster("tq-private-chain", {
     subnetIds: vpc.publicSubnetIds,
 })
 
+const ns = new k8s.core.v1.Namespace("tezos", {metadata: {name:"tezos",}},
+					      { provider: cluster.provider});
+export const nsName = ns.metadata.name;
+
 // Deploy Tezos into our cluster.
 const chain = new k8s.helm.v2.Chart("chain", {
+    namespace: nsName,
     path: "../charts/tezos",
     values: helm_values,
 }, { providers: { "kubernetes": cluster.provider } });
 
 const rpc = new k8s.helm.v2.Chart("rpc-auth", {
+    namespace: nsName,
     path: "../charts/rpc-auth",
     values: helm_values,
 }, { providers: { "kubernetes": cluster.provider } });
@@ -58,6 +64,7 @@ const rpc = new k8s.helm.v2.Chart("rpc-auth", {
 // * put certificate arn in the nginx_ingress_values.yaml
 
 const nginxIngress = new k8s.helm.v2.Chart("nginx-ingress", {
+    namespace: nsName,
     chart: "ingress-nginx",
     fetchOpts: {
       repo: "https://kubernetes.github.io/ingress-nginx" },
