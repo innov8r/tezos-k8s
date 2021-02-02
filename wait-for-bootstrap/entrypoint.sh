@@ -9,12 +9,18 @@ if [ -s /var/tezos/node/peers.json ] && [ "$(jq length /var/tezos/node/peers.jso
     exit 0
 fi
 
-FBN=tezos-baking-node-0.tezos-baking-node
+BOOTSTRAP_NODES=
+for i in 0 1; do
+    BOOTSTRAP_NODES="$BOOTSTRAP_NODES tezos-baking-node-$i.tezos-baking-node"
+done
+
 HOST=$(hostname -f)
-if [ "${HOST##$FBN}" != "$HOST" ]; then
-    printf "do not wait for myself\n"
-    exit 0
-fi
+for node in $BOOTSTRAP_NODES; do
+    if [ "${HOST##$node}" != "$HOST" ]; then
+	echo "I'm the one of the bootstrap nodes: do not wait for myself"
+	exit 0
+    fi
+done
 
 #
 # wait for node to respond to rpc.  We still sleep between nc(1)'s because
@@ -43,7 +49,13 @@ randomsleep() {
 
 sleep 10
 randomsleep
-echo "waiting for bootstrap node to accept connections"
-until </dev/null nc -q 0 ${FBN} 8732; do
+echo "waiting for bootstrap nodes to accept connections"
+
+while :; do
+    for node in $BOOTSTRAP_NODES; do
+	if </dev/null nc -q 0 ${node} 8732; then
+	    exit 0
+	fi
+    done
     randomsleep
 done
