@@ -40,6 +40,10 @@ const vpc = new awsx.ec2.Vpc("tezos-vpc", {});
 const cluster = new eks.Cluster("tq-private-chain", {
     vpcId: vpc.id,
     subnetIds: vpc.publicSubnetIds,
+    instanceType: "t2.xlarge",
+    desiredCapacity: 40,
+    minSize: 3,
+    maxSize: 50,
 })
 
 const ns = new k8s.core.v1.Namespace("tezos", {metadata: {name:"tezos",}},
