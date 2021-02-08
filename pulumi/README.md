@@ -14,19 +14,19 @@ We are not using Zerotier in this example.
 ## Prerequisites
 
 - python3
--- pip
--- python3-venv
+    - pip
+    - python3-venv
 - [docker](https://docs.docker.com/get-docker/)
--- make sure that you add your username to the docker group
--- https://docs.docker.com/engine/install/linux-postinstall/
+    - make sure that you add your username to the docker group
+    - https://docs.docker.com/engine/install/linux-postinstall/
 - [kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/)
 - [helm](https://helm.sh/)
 - AWS CLI
 - nodejs
 - pulumi
--- install pulumi
--- create and account and tokens
--- pulumi has some modules to install
+    - install pulumi
+    - create and account and tokens
+    - pulumi has some modules to install
 
 ## Installing prerequisites
 
