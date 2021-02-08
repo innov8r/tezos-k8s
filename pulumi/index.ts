@@ -57,23 +57,24 @@ const chain = new k8s.helm.v2.Chart("chain", {
     values: helm_values,
 }, { providers: { "kubernetes": cluster.provider } });
 
-const rpc = new k8s.helm.v2.Chart("rpc-auth", {
-    namespace: nsName,
-    path: "../charts/rpc-auth",
-    values: helm_values,
-}, { providers: { "kubernetes": cluster.provider } });
+if (helm_values["rpc_auth"] == true) {
+    const rpc = new k8s.helm.v2.Chart("rpc-auth", {
+	namespace: nsName,
+	path: "../charts/rpc-auth",
+	values: helm_values,
+    }, { providers: { "kubernetes": cluster.provider } });
 
-// Manual step at this point:
-// * create a certificate
-// * put certificate arn in the nginx_ingress_values.yaml
-
-const nginxIngress = new k8s.helm.v2.Chart("nginx-ingress", {
-    namespace: nsName,
-    chart: "ingress-nginx",
-    fetchOpts: {
-      repo: "https://kubernetes.github.io/ingress-nginx" },
-    values: nginx_ingress_helm_values,
-}, { providers: { "kubernetes": cluster.provider } });
+    // Manual step at this point:
+    // * create a certificate
+    // * put certificate arn in the nginx_ingress_values.yaml
+    const nginxIngress = new k8s.helm.v2.Chart("nginx-ingress", {
+	namespace: nsName,
+	chart: "ingress-nginx",
+	fetchOpts: {
+	  repo: "https://kubernetes.github.io/ingress-nginx" },
+	values: nginx_ingress_helm_values,
+    }, { providers: { "kubernetes": cluster.provider } });
+}
 
 // Manual steps after all is done:
 // Enable proxy protocol v2 on the target groups:
