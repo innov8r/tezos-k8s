@@ -81,7 +81,7 @@ mkchain --number-of-bakers 10 $CHAIN_NAME
 ## Use Pulumi to "make it so"
 
 ```shell
-pulumi init stack my_name
+pulumi stack init my_name
 pulumi config set aws:region us-east-2
 pulumi up
 ```
